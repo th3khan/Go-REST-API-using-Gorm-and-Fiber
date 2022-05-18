@@ -1,6 +1,7 @@
 package book
 
 import (
+	"errors"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -31,17 +32,28 @@ func GetBooks(c *fiber.Ctx) error {
 	return c.JSON(books)
 }
 
-func GetBook(c *fiber.Ctx) error {
-	id := c.Params("id")
-	db := database.DbConnection
+func ValidateBookExists(c *fiber.Ctx, db *gorm.DB) (Book, error, int) {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return Book{}, errors.New("Invalid request"), fiber.StatusBadRequest
+	}
 	var book Book
 	db.First(&book, id)
-
 	if book.ID == 0 {
+		return Book{}, errors.New("Book not found"), fiber.StatusNotFound
+	}
+	return book, nil, fiber.StatusOK
+}
+
+func GetBook(c *fiber.Ctx) error {
+	db := database.DbConnection
+	book, err, status := ValidateBookExists(c, db)
+
+	if err != nil {
 		c.JSON(fiber.Map{
-			"message": "Book not found",
+			"message": err.Error(),
 		})
-		return c.SendStatus(fiber.StatusNotFound)
+		return c.SendStatus(status)
 	}
 	return c.JSON(book)
 }
@@ -67,21 +79,13 @@ func NewBook(c *fiber.Ctx) error {
 }
 
 func UpdateBook(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+	db := database.DbConnection
+	book, err, status := ValidateBookExists(c, db)
 	if err != nil {
 		c.JSON(fiber.Map{
-			"message": "Invalid request",
+			"message": err.Error(),
 		})
-		return c.SendStatus(fiber.StatusBadRequest)
-	}
-	db := database.DbConnection
-	var book Book
-	db.First(&book, id)
-	if book.ID == 0 {
-		c.JSON(fiber.Map{
-			"message": "Book not found",
-		})
-		return c.SendStatus(fiber.StatusNotFound)
+		return c.SendStatus(status)
 	}
 	var bookRequest BookRequest
 	if err := c.BodyParser(&bookRequest); err != nil {
@@ -99,21 +103,13 @@ func UpdateBook(c *fiber.Ctx) error {
 }
 
 func DeleteBook(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+	db := database.DbConnection
+	book, err, status := ValidateBookExists(c, db)
 	if err != nil {
 		c.JSON(fiber.Map{
-			"message": "Invalid request",
+			"message": err.Error(),
 		})
-		return c.SendStatus(fiber.StatusBadRequest)
-	}
-	db := database.DbConnection
-	var book Book
-	db.First(&book, id)
-	if book.ID == 0 {
-		c.JSON(fiber.Map{
-			"message": "Book not found",
-		})
-		return c.SendStatus(fiber.StatusNotFound)
+		return c.SendStatus(status)
 	}
 	db.Delete(&book)
 	c.JSON(fiber.Map{
