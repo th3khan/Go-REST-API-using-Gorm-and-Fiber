@@ -15,7 +15,7 @@ type Book struct {
 	Rating    int            `json:"rating"`
 	CreatedAt time.Time      `json:"created_at" gorm:"column:created_at"`
 	UpdatedAt time.Time      `json:"updated_at" gorm:"column:updated_at"`
-	DeleteAt  gorm.DeletedAt `json:"deleted_at" gorm:"column:deleted_at" gorm:"index"`
+	DeleteAt  gorm.DeletedAt `gorm:"column:deleted_at" gorm:"index"`
 }
 
 func GetBooks(c *fiber.Ctx) error {
