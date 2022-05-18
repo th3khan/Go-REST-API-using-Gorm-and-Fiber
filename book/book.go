@@ -99,5 +99,25 @@ func UpdateBook(c *fiber.Ctx) error {
 }
 
 func DeleteBook(c *fiber.Ctx) error {
-	return c.SendString("Delete a Book")
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		c.JSON(fiber.Map{
+			"message": "Invalid request",
+		})
+		return c.SendStatus(fiber.StatusBadRequest)
+	}
+	db := database.DbConnection
+	var book Book
+	db.First(&book, id)
+	if book.ID == 0 {
+		c.JSON(fiber.Map{
+			"message": "Book not found",
+		})
+		return c.SendStatus(fiber.StatusNotFound)
+	}
+	db.Delete(&book)
+	c.JSON(fiber.Map{
+		"message": "Book deleted",
+	})
+	return c.SendStatus(fiber.StatusOK)
 }
