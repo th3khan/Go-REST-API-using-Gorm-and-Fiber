@@ -30,6 +30,10 @@ func GetBook(c *fiber.Ctx) error {
 	db := database.DbConnection
 	var book Book
 	db.First(&book, id)
+
+	if book.ID == 0 {
+		return c.SendStatus(404)
+	}
 	return c.JSON(book)
 }
 
