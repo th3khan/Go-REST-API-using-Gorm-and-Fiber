@@ -2,6 +2,7 @@ package book
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/th3khan/Go-REST-API-using-Gorm-and-Fiber/database"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +14,10 @@ type Book struct {
 }
 
 func GetBooks(c *fiber.Ctx) error {
-	return c.SendString("Get All Books")
+	db := database.DbConnection
+	var books []Book
+	db.Find(&books)
+	return c.JSON(books)
 }
 
 func GetBook(c *fiber.Ctx) error {
