@@ -32,6 +32,8 @@ func initDatabase() {
 		panic("failed to connect database")
 	}
 	fmt.Println("Connected to database successfully!")
+	database.DbConnection.AutoMigrate(&book.Book{})
+	fmt.Println("Database migrated successfully!")
 }
 
 func main() {
