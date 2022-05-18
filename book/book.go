@@ -32,6 +32,9 @@ func GetBook(c *fiber.Ctx) error {
 	db.First(&book, id)
 
 	if book.ID == 0 {
+		c.JSON(fiber.Map{
+			"message": "Book not found",
+		})
 		return c.SendStatus(404)
 	}
 	return c.JSON(book)
