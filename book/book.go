@@ -26,7 +26,11 @@ func GetBooks(c *fiber.Ctx) error {
 }
 
 func GetBook(c *fiber.Ctx) error {
-	return c.SendString("Get a Single Book")
+	id := c.Params("id")
+	db := database.DbConnection
+	var book Book
+	db.First(&book, id)
+	return c.JSON(book)
 }
 
 func NewBook(c *fiber.Ctx) error {
